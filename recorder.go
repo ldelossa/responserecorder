@@ -1,9 +1,7 @@
 package responserecorder
 
 import (
-	"bufio"
 	"io"
-	"net"
 	"net/http"
 )
 
@@ -80,7 +78,7 @@ func (r *responseRecorder) Write(b []byte) (int, error) {
 	if err != nil {
 		return n, err
 	}
-	r.length = n
+	r.length += n
 	return n, err
 }
 
@@ -89,54 +87,4 @@ func (r *responseRecorder) Write(b []byte) (int, error) {
 func (r *responseRecorder) WriteHeader(statusCode int) {
 	r.code = statusCode
 	r.ResponseWriter.WriteHeader(statusCode)
-}
-
-// closeNotifierWrap wraps a ResponseWriter which smuggles
-// the http.CloseNotifier interface and proxies to it.
-type closeNotifierWrap struct {
-	http.ResponseWriter
-}
-
-func (w *closeNotifierWrap) CloseNotify() <-chan bool {
-	return w.ResponseWriter.(http.CloseNotifier).CloseNotify()
-}
-
-// flusherWrap wraps a ResponseWriter which smuggles
-// the http.Flusher interface and proxies to it.
-type flusherWrap struct {
-	http.ResponseWriter
-}
-
-func (w *flusherWrap) Flush() {
-	w.ResponseWriter.(http.Flusher).Flush()
-}
-
-// hijackerWrap wraps a ResponseWriter which smuggles
-// the http.Hijacker interface and proxies to it.
-type hijackerWrap struct {
-	http.ResponseWriter
-}
-
-func (h *hijackerWrap) Hijack() (net.Conn, *bufio.ReadWriter, error) {
-	return h.ResponseWriter.(http.Hijacker).Hijack()
-}
-
-// readerFromWrap wraps a ResponseWriter which smuggles
-// the io.ReaderFrom interface and proxies to it.
-type readerFromWrap struct {
-	http.ResponseWriter
-}
-
-func (r *readerFromWrap) ReadFrom(reader io.Reader) (n int64, err error) {
-	return r.ResponseWriter.(io.ReaderFrom).ReadFrom(reader)
-}
-
-// pusherWrap wraps a ResponseWriter which smuggles
-// the http.Pusher interface and proxies to it.
-type pusherWrap struct {
-	http.ResponseWriter
-}
-
-func (p *pusherWrap) Push(target string, opts *http.PushOptions) error {
-	return p.ResponseWriter.(http.Pusher).Push(target, opts)
 }
